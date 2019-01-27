@@ -1,0 +1,176 @@
+<script>
+    // set required variables
+    height = 0;
+    width = 0;
+
+    var board = null;
+
+    turtlemoves = "";
+
+    turtleD = 0;
+    turtlex = 0;
+    turtley = 0;
+
+    isGameOver = false;
+
+    // set directional constants
+    const NORTH = 1;
+    const EAST = 2;
+    const SOUTH = 3;
+    const WEST = 4;
+
+    // read game settings (JSON)
+    fetch('settings.json')
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(myJson) {
+
+        gameSettingJSON = JSON.stringify(myJson);
+        gameSettingObjJSON = JSON.parse(gameSettingJSON);
+
+        height = gameSettingObjJSON.grid_size[0];
+        width = gameSettingObjJSON.grid_size[1];
+
+        board = Array.from(Array(height), () => new Array(width));
+
+        exitX = gameSettingObjJSON.exit[0];
+        exitY = gameSettingObjJSON.exit[1];
+        try{
+            board[exitX][exitY] = "exit";
+        }
+        catch(e){
+            console.log("Exit out of range! Please check game settings.");
+        }
+        gameSettingObjJSON.mines.forEach(mine => {
+            try{
+                board[mine[0]][mine[1]] = "mine";
+            }
+            catch(e){
+                console.log("Mine out of range! Please check game settings.");
+            }
+        });
+
+        turtleX = gameSettingObjJSON.turtle_position[0];
+        turtleY = gameSettingObjJSON.turtle_position[1];
+        turtleD = gameSettingObjJSON.turtle_direction;
+        
+        console.log(board);
+
+        // read moves, then the turtle moves :)
+        if(board != null){
+            fetch('moves.txt')
+            .then(response => response.text())
+            .then(function(text) {
+                turtlemoves = text;
+                move();
+            });
+        }
+        else{
+            console.log("Grid hasnt been set please check settiings.")
+        }
+        
+    });
+
+    // move the turtle :)
+    function move(){
+        var moves = turtlemoves.split(',');
+
+            moves.forEach(move => {
+                if(!isGameOver){
+                    if(move == 'r'){
+                        if(turtleD < WEST){
+                            ++turtleD;                    
+                        }
+                        else{
+                            turtleD = NORTH;
+                        }
+                    }
+                    else if(move == 'm'){
+                        if(turtleD == NORTH){
+                            --turtlex;
+                            if(checkHeightBounds(turtlex)){
+                                checkTurtlePosition(turtlex,turtley);
+                            }
+                            else{
+                                console.log("Out of bounds");
+                                isGameOver = true;
+                            }
+                        }
+                        else if(turtleD == EAST){
+                            ++turtley;
+                            if(checkWidthBounds(turtley)){
+                                checkTurtlePosition(turtlex,turtley);
+                            }
+                            else{
+                                console.log("Out of bounds");
+                                isGameOver = true;
+                            }
+                        }
+                        else if(turtleD == SOUTH){
+                            ++turtlex;
+                            if(checkHeightBounds(turtlex)){
+                                checkTurtlePosition(turtlex,turtley);
+                            }
+                            else{
+                                console.log("Out of bounds");
+                                isGameOver = true;
+                            }
+                        }
+                        else if(turtleD == WEST){
+                            --turtley;
+                            if(checkWidthBounds(turtley)){
+                                checkTurtlePosition(turtlex,turtley);
+                            }
+                            else{
+                                console.log("Out of bounds");
+                                isGameOver = true;
+                            }
+                        }
+                    }
+                }
+                else{
+                    return;
+                }   
+            });
+    }
+
+    // check where we are and what we have hit
+    function checkTurtlePosition(x,y){
+        try{
+            if(board[x][y] == "mine"){
+                console.log("mine hit");
+                isGameOver = true;
+            }
+            else if(board[x][y] == "exit"){
+                console.log("you made it out :)");
+                isGameOver = true;
+            }
+            else{
+                console.log("Still in danger!");
+            }
+        }
+        catch(e){
+            console.log("Out of bounds!");
+            isGameOver = true;
+        }
+    }
+
+    function checkHeightBounds(heightArg){
+        if((heightArg >= 0) || (heightArg < height) ){
+            return true;
+        }
+        else{
+            return false
+        }
+    }
+
+    function checkWidthBounds(widthArg){
+        if((widthArg >= 0) || (widthArg < width) ){
+            return true;
+        }
+        else{
+            return false
+        }
+    }
+</script>

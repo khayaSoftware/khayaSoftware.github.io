@@ -1,0 +1,15 @@
+{
+    //grid size is not zero based
+    "grid_size": [5,4],
+
+    // all cordinates begin at zero
+    "mines": [
+        [2,3],
+        [3,3],
+        [1,3],
+        [2,4]
+    ],
+    "exit": [3,2],
+    "turtle_position": [0,0],
+    "turtle_direction": 2
+}
