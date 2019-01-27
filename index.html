@@ -20,7 +20,7 @@
     const WEST = 4;
 
     // read game settings (JSON)
-    fetch('settings.json')
+    fetch('https://khayasoftware.github.io/settings.json')
     .then(function(response) {
         return response.json();
     })
@@ -59,7 +59,7 @@
 
         // read moves, then the turtle moves :)
         if(board != null){
-            fetch('moves.txt')
+            fetch('https://khayasoftware.github.io/moves.txt')
             .then(response => response.text())
             .then(function(text) {
                 turtlemoves = text;
