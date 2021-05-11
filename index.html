@@ -1,176 +1,322 @@
-<script>
-    // set required variables
-    height = 0;
-    width = 0;
+<!DOCTYPE html>
+<html lang="en">
 
-    var board = null;
+<head>
+    <meta charset="utf-8">
+    <title>Full Stack Developer | Khaya Khumalo</title>
+    <link rel="shortcut icon" href="elephant-tp-icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" />
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+</head>
 
-    turtlemoves = "";
-
-    turtleD = 0;
-    turtlex = 0;
-    turtley = 0;
-
-    isGameOver = false;
-
-    // set directional constants
-    const NORTH = 1;
-    const EAST = 2;
-    const SOUTH = 3;
-    const WEST = 4;
-
-    // read game settings (JSON)
-    fetch('https://khayasoftware.github.io/settings.json')
-    .then(function(response) {
-        return response.json();
-    })
-    .then(function(myJson) {
-
-        gameSettingJSON = JSON.stringify(myJson);
-        gameSettingObjJSON = JSON.parse(gameSettingJSON);
-
-        height = gameSettingObjJSON.grid_size[0];
-        width = gameSettingObjJSON.grid_size[1];
-
-        board = Array.from(Array(height), () => new Array(width));
-
-        exitX = gameSettingObjJSON.exit[0];
-        exitY = gameSettingObjJSON.exit[1];
-        try{
-            board[exitX][exitY] = "exit";
-        }
-        catch(e){
-            console.log("Exit out of range! Please check game settings.");
-        }
-        gameSettingObjJSON.mines.forEach(mine => {
-            try{
-                board[mine[0]][mine[1]] = "mine";
-            }
-            catch(e){
-                console.log("Mine out of range! Please check game settings.");
-            }
-        });
-
-        turtleX = gameSettingObjJSON.turtle_position[0];
-        turtleY = gameSettingObjJSON.turtle_position[1];
-        turtleD = gameSettingObjJSON.turtle_direction;
-        
-        console.log(board);
-
-        // read moves, then the turtle moves :)
-        if(board != null){
-            fetch('https://khayasoftware.github.io/moves.txt')
-            .then(response => response.text())
-            .then(function(text) {
-                turtlemoves = text;
-                move();
-            });
-        }
-        else{
-            console.log("Grid hasnt been set please check settiings.")
-        }
-        
-    });
-
-    // move the turtle :)
-    function move(){
-        var moves = turtlemoves.split(',');
-
-            moves.forEach(move => {
-                if(!isGameOver){
-                    if(move == 'r'){
-                        if(turtleD < WEST){
-                            ++turtleD;                    
-                        }
-                        else{
-                            turtleD = NORTH;
-                        }
-                    }
-                    else if(move == 'm'){
-                        if(turtleD == NORTH){
-                            --turtlex;
-                            if(checkHeightBounds(turtlex)){
-                                checkTurtlePosition(turtlex,turtley);
-                            }
-                            else{
-                                console.log("Out of bounds");
-                                isGameOver = true;
-                            }
-                        }
-                        else if(turtleD == EAST){
-                            ++turtley;
-                            if(checkWidthBounds(turtley)){
-                                checkTurtlePosition(turtlex,turtley);
-                            }
-                            else{
-                                console.log("Out of bounds");
-                                isGameOver = true;
-                            }
-                        }
-                        else if(turtleD == SOUTH){
-                            ++turtlex;
-                            if(checkHeightBounds(turtlex)){
-                                checkTurtlePosition(turtlex,turtley);
-                            }
-                            else{
-                                console.log("Out of bounds");
-                                isGameOver = true;
-                            }
-                        }
-                        else if(turtleD == WEST){
-                            --turtley;
-                            if(checkWidthBounds(turtley)){
-                                checkTurtlePosition(turtlex,turtley);
-                            }
-                            else{
-                                console.log("Out of bounds");
-                                isGameOver = true;
-                            }
-                        }
-                    }
-                }
-                else{
-                    return;
-                }   
-            });
+<style>
+    html,
+    section,
+    div {
+        background-color: #000;
     }
 
-    // check where we are and what we have hit
-    function checkTurtlePosition(x,y){
-        try{
-            if(board[x][y] == "mine"){
-                console.log("mine hit");
-                isGameOver = true;
-            }
-            else if(board[x][y] == "exit"){
-                console.log("you made it out :)");
-                isGameOver = true;
-            }
-            else{
-                console.log("Still in danger!");
-            }
-        }
-        catch(e){
-            console.log("Out of bounds!");
-            isGameOver = true;
-        }
+    a {
+        color: gold !important;
+        text-decoration: none !important;
     }
 
-    function checkHeightBounds(heightArg){
-        if((heightArg >= 0) || (heightArg < height) ){
-            return true;
-        }
-        else{
-            return false
-        }
+    .gold-text {
+        color: gold !important;
     }
 
-    function checkWidthBounds(widthArg){
-        if((widthArg >= 0) || (widthArg < width) ){
-            return true;
-        }
-        else{
-            return false
-        }
+    a:hover {
+        color: goldenrod !important;
     }
-</script>
+
+    .black-hero {
+        padding: 80px;
+        background-color: #000;
+        color: #fff;
+        border-bottom: solid 2px #fff;
+    }
+
+    /* .black-hero .container{
+        border-bottom: solid 2px #fff;
+    } */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    p {
+        font-family: 'Oswald', sans-serif;
+    }
+
+    .past-work {
+        background-color: #000;
+        color: #fff;
+    }
+</style>
+
+<body>
+    <section class="black-hero">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <img src="elephant.png" class="img img-responsive" />
+                    <h1>Khaya Khumalo</h1>
+                    <p class="h3 gold-text">Full Stack Software Developer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="past-work py-5">
+        <div class="container">
+            <div class="row py-4">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <h2>
+                        Past work
+                    </h2>
+                    <p class="lead">For more information please download my CV <a href="KhayaKhumalo_Final.pdf" download>here.</a></p>
+                </div>
+            </div>
+            <div class="row p-4 border-bottom border-white">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <p class="h4 pb-2">
+                        Genuity Science (2019 - Present)
+                    </p>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://genuitysci.com">Genuity Science</a></p>
+                    <ul>
+                        <li>Built on maintained CentOS server</li>
+                        <li>Custom (PHP)WordPress theme</li>
+                        <li>Custom built cookie compliance wordpress plugin</li>
+                        <li>bootstrap integration</li>
+                        <li>Custom JS</li>
+                        <li>ACF (Advanced Custom Fields)</li>
+                        <li>Custom SCSS and HTML</li>
+                        <li>Hubspot forms intergrations</li>
+                        <li>SalesForce forms intergrations</li>
+                        <li>GutenBerg and React backend (work in progress)</li>
+                        <li>Completely custom PHP forms integrated with Google ReCaptcha</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://phi.genuitysci.com/">Public Health Initiative</a></p>
+                    <ul>
+                        <li>Built on maintained CentOS server</li>
+                        <li>Custom (PHP)WordPress bootstrap theme</li>
+                        <li>Custom built cookie compliance wordpress plugin</li>
+                        <li>MYSQL Database</li>
+                        <li>Custom JS</li>
+                        <li>ACF (Advanced Custom Fields)</li>
+                        <li>Custom SCSS and HTML</li>
+                        <li>Hubspot forms intergrations</li>
+                        <li>GutenBerg and React backend (work in progress)</li>
+                        <li>Completely custom PHP forms integrated with Google ReCaptcha</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead gold-text">Genomics Summit Dublin</p>
+                    <P>No longer online</P>
+                    <ul>
+                        <li>Built on maintained CentOS server</li>
+                        <li>Custom (PHP)WordPress bootstrap theme</li>
+                        <li>Custom built cookie compliance wordpress plugin</li>
+                        <li>Custom JS</li>
+                        <li>ACF (Advanced Custom Fields)</li>
+                        <li>Custom SCSS and HTML</li>
+                        <li>SalesForce forms intergrations</li>
+                        <li>GutenBerg and React backend (work in progress)</li>
+                        <li>Completely custom PHP forms integrated with Google ReCaptcha</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead gold-text">Internal Facing Web Application</p>
+                    <p>To manage highly sensitive form data submitted via forms on the public websites</p>
+                    <ul>
+                        <li>Built on maintained CentOS server</li>
+                        <li>Built using Laravel framework</li>
+                        <li>Custom JS (Angular)</li>
+                        <li>Connected to Encrypted MYSQL Database</li>
+                        <li>Custom CSS and HTML</li>
+                        <li>Redis cache impletemented to increase performance</li>
+                        <li>JQuery Datatables</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row p-4 border-bottom border-white">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <p class="h4 pb-2">
+                        M5O Angel (2019)
+                    </p>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead gold-text">M50 Angel Mobile App</p>
+                    <ul>
+                        <li>Built using Ionic</li>
+                        <li>Twitter API intergratoin</li>
+                        <li>Angular 8</li>
+                        <li>Excellent UX/UI</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row p-4 border-bottom border-white">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <p class="h4 pb-2">
+                        Willows Consulting (2018 - 2019)
+                    </p>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://www.lennoxeducational.ie/">Lennox Educational</a></p>
+                    <ul>
+                        <li>Installed Prestashop framework and plugins required</li>
+                        <li>Built multiple custom plugins</li>
+                        <li>Created MYSQL Database</li>
+                        <li>Tested to enure user rquirements were met.</li>
+                        <li>Helped manage and configure products on webstie</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead gold-text">Maintained bespoke internal task managemnt system (LAMP)</p>
+                    <ul>
+                        <li>Cake PHP</li>
+                        <li>Feature to run statistics on employee output</li>
+                        <li>Cusom JS</li>
+                        <li>Cusom HTML/CSS</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://www.heritagehampers.com/">Heritage Hampers</a></p>
+                    <ul>
+                        <li>WordPress Woocommerce set up</li>
+                        <li>Built PHP algorithm to import products</li>
+                        <li>Extended theme functionality to meet custom client requirements</li>
+                        <li>Set up LAMP server</li>
+                        <li>HTML/CSS</li>
+                        <li>Test website to ensure user requirements were met</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://store.fishinginireland.info/">Store Inland Fisheries Ireland</a></p>
+                    <ul>
+                        <li>WordPress Woocommerce set up</li>
+                        <li>Product set up</li>
+                        <li>Graphic Design</li>
+                        <li>Extended theme functionality to meet custom client requirements</li>
+                        <li>Set up LAMP server</li>
+                        <li>HTML/CSS</li>
+                        <li>Test website to ensure user requirements were met</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row p-4">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <p class="h4 pb-2">
+                        Irish Computer Society (2016 - 2018)
+                    </p>
+                    <p>
+                        Formerly known as ECDL
+                    </p>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://www.ics.ie/">ICS</a>, <a target="_blank" href="https://www.hisi.ie/">HISI</a>,<a target="_blank" href="https://www.businessanalyst.ie/">BUSINESSANALYST.ie</a>, <a target="_blank" href="https://www.itsmf.ie/">ITSMF</a>, <a target="_blank" href="https://www.iasa.ie/">IASA</a></p>
+                    <ul>
+                        <li>This is an ecosystem of websites all sitting on the same Zend instance</li>
+                        <li>General Maintenance</li>
+                        <li>Graphic Design</li>
+                        <li>Managing Databases</li>
+                        <li>Build Zend forms with end to end validation</li>
+                        <li>Built payment gateways that link to paypal</li>
+                        <li>Bootstrap</li>
+                        <li>AngularJS, JQuery</li>
+                        <li>Graphic Design</li>
+                        <li>Excellent UI/UX</li>
+                        <li>State Management</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://www.ecdl.ie/">ECDL.ie</a></p>
+                    <ul>
+                        <li>Custom (PHP)WordPress theme</li>
+                        <li>General Maintenance</li>
+                        <li>Bootstrap</li>
+                        <li>Intergration with SalesForce forms</li>
+                        <li>Intergration with mailchimp</li>
+                        <li>Intergration with stripe</li>
+                        <li>Intergration with .NET API</li>
+                        <li>Excellent UI/UX</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://bebras.techweek.ie/">Bebras</a></p>
+                    <ul>
+                        <li>Completely custom bootstrap website</li>
+                        <li>General Maintenance</li>
+                        <li>Graphic Design</li>
+                        <li>Excellent UI/UX</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://bebras.techweek.ie/">Digital Jobs and Skills Coalition</a></p>
+                    <ul>
+                        <li>Custom (PHP)WordPress theme</li>
+                        <li>General Maintenance</li>
+                        <li>Graphic Design</li>
+                        <li>Excellent UI/UX</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead gold-text">Intranet Features (Zend)</p>
+                    <ul>
+                        <li>Built an API to serve content from internal CMS to public facing websites</li>
+                        <li>Database design</li>
+                        <li>Extened CMS capabilities</li>
+                        <li>Debugging</li>
+                        <li>Authentication and Authorization</li>
+                        <li>Excellent UI/UX</li>
+                        <li>Conmmunication with clients and stakeholders</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                    <p class="lead"><a target="_blank" href="https://www.ics.ie/anniversary">Irish Computer Society 50<sup>th</sup> Anniversary Website</a></p>
+                    <ul>
+                        <li>Custom built website using Zend, and Bootstrap</li>
+                        <li>Web design</li>
+                        <li>Graphic Design</li>
+                        <li>Excellent UI/UX</li>
+                        <li>GIT versiion Control</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</body>
+
+</html>
